@@ -71,12 +71,13 @@ Evaluation is proprotional the length first list `a` as it is being added elemen
 
 ### Reversing a list
 ```ocaml
-utop # let rec rev l = 
-match l with
-[] -> []
-| h::t -> rev t @ [h];;
+let rec rev l = 
+    match l with
+    [] -> []
+    | h::t -> rev t @ [h];;
 val rev : 'a list -> 'a list = <fun>
-utop # rev [1; 2; 3; 3; 4; 5; 6; 7];;
+
+rev [1; 2; 3; 3; 4; 5; 6; 7];;
 - : int list = [7; 6; 5; 4; 3; 3; 2; 1]
 ```
 
