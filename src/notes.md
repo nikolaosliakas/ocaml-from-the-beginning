@@ -1,6 +1,7 @@
 # Notes from Book
+## Table of Conntents
 
-## Lists
+## Making Lists
 [list-properties][1]<br>
 ### head and tail
 each list has a head and tail - _except the empty list_
@@ -68,7 +69,58 @@ append [1;2;3] [3;4;5;6;7];;
 ```
 Evaluation is proprotional the length first list `a` as it is being added element-by-element using the cons operator `::`
 
-TODO: write down functions for take and drop on list page.
+### Reversing a list
+```ocaml
+utop # let rec rev l = 
+match l with
+[] -> []
+| h::t -> rev t @ [h];;
+val rev : 'a list -> 'a list = <fun>
+utop # rev [1; 2; 3; 3; 4; 5; 6; 7];;
+- : int list = [7; 6; 5; 4; 3; 3; 2; 1]
+```
+
+### Take and Drop
+The above isn't very efficient, here is a view of the intermediate state during each recurcive call:
+```shell
+-> rev [1;2;3;4]
+-> rev [2;3;4] @ [1]
+-> (rev [3;4] @ [2]) @ [1]
+-> ((rev [4] @ [3]) @ [2]) @ [1]
+-> (((rev [] @ [4]) @ [3]) @ [2]) @ [1]
+-> ((([] @ [4]) @ [3]) @ [2]) @ [1]
+->* [4;3;2;1]
+```
+Takes time proportional to the list length.
+
+__Take__
+```ocaml
+(*Take n number of items from l as a cons to the head of list for n-1 numbers*)
+let rec take n l = 
+    if n = 0 then [] else
+    match l with 
+    h::t -> h :: take (n-1) t;;
+val take : int -> 'a list -> 'a list = <fun>
+take 2 [2;4;6;8;10];;
+- : int list = [2; 4]
+```
+__Drop__
+```ocaml
+(*returns tail for number of items n to drop from l*)
+let rec drop n l = 
+    if n = 0 then l else
+    match l with
+    h::t -> drop (n-1) t;;
+
+val drop : int -> 'a list -> 'a list = <fun>
+
+drop 2 [2;4;6;8;10];;
+- : int list = [6; 8; 10]
+```
+## Making Lists
+[list-properties][1]<br>
+
+
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
