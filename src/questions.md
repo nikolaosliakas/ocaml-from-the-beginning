@@ -113,6 +113,144 @@ acc_reverse [1;2;3;4] [];;
 - : int list = [4; 3; 2; 1]
 ```
 
+## Sorting Things
+[Sorting][2]<br>
+1. In msort, we calculate the value of the expression length l / 2 twice. Modify msort to remove this inefficiency.
+
+```ocaml
+(*original msort*)
+let rec msort l = 
+    match l with
+        [] -> []
+        | [x] -> [x]
+        (*get right elements and left elements and sort*)
+        | _ ->
+            let left = take (length l/2) l in
+            let right = drop (length l/2) l in
+            merge (msort left) (msort right);;
+```
+```ocaml
+(*new msort*)
+let rec msort l = 
+    match l with
+        [] -> []
+        | [x] -> [x]
+        (*get right elements and left elements and sort*)
+        | _ ->
+            let half_len: int = length l/2 in 
+            let left = take half_len l in
+            let right = drop half_len l in
+            merge (msort left) (msort right);;
+```
+2. We know that `take` and `drop` can fail if called with incorrect arguments. Show that this is never the case in `msort`.
+
+`take` and `drop` take two args an intiger and 'a list. Both functions do not match for an empty list as a second argument. In `msort` an empty list is already matched in the base case of `msort`, thus an empty list will not be passed to take and drop!
+
+3. Write a version of insertion sort which sorts the argument list into reverse order.
+```ocaml
+(*insertion sorted by ascending*)
+let rec insert x l =
+    match l with
+        [] -> [x]
+        | h::t ->
+            if x <= h
+            then x :: h :: t
+            else h :: insert x t
+
+let rec sort l =
+    match l with
+    [] -> []
+    |h::t -> insert h (sort t);;
+```
+Ascending or descending order is determined by the inequality operator in the conditional output with the cons disconstruction.
+```ocaml
+let rec insert x l =
+    match l with
+        [] -> [x]
+        | h::t ->
+            if x >= h
+            then x :: h :: t
+            else h :: insert x t
+```
+4. Write a function to detect if a list is already in sorted order.
+```ocaml
+match l with
+    [] -> true
+    |[x] -> true
+    |h::x::t -> 
+        if h <= x 
+        then sort_check (x::t) 
+        else false;;
+val sort_check : 'a list -> bool = <fun>
+```
+5. We mentioned that the comparison functions like  <  work for many OCaml types. Can you determine, by experimentation, how they work for lists? For example, what is the result of [1; 2] < [2; 3]? What happens when we sort the following list of type char list list? Why?
+
+List inequality operators (<, >, >=, etc) in OCaml module compare only the first element (h) of either list. From the answers - OCaml then evaluates the second items if the first two items are equal and so on.
+```ocaml
+[1; 5] < [2; 3];;
+- : bool = true
+[4; 1] < [2; 3];;
+- : bool = false
+[4] < [2; 3];;
+- : bool = false
+[4] > [2; 3];;
+- : bool = true
+[1; 2] < [1; 3];;
+- : bool = true
+```
+
+What happens for sorting internal `char list list`?
+```ocaml
+sort [’o’; ’n’; ’e’];;
+    Line 1, characters 6-7:
+    Alert deprecated: ISO-Latin1 characters in identifiers
+    Line 1, characters 9-11:
+    Alert deprecated: ISO-Latin1 characters in identifiers
+    Line 1, characters 15-16:
+    Alert deprecated: ISO-Latin1 characters in identifiers
+    Line 1, characters 18-20:
+    Alert deprecated: ISO-Latin1 characters in identifiers
+    Line 1, characters 24-25:
+    Alert deprecated: ISO-Latin1 characters in identifiers
+    Line 1, characters 27-29:
+    Alert deprecated: ISO-Latin1 characters in identifiers
+    Error: Line 1, characters 7-8:
+    Error: Illegal character (\128)
+```
+6. Combine the sort and insert functions into a single sort function.
+
+```ocaml
+(*Uncombined*)
+let rec insert x l =
+    match l with
+        [] -> [x]
+        | h::t ->
+            if x <= h
+            then x :: h :: t
+            else h :: insert x t
+
+let rec sort l =
+    match l with
+        [] -> []
+        |h::t -> insert h (sort t);;
+(*Combined - I had to look this up in the answers*)
+
+let rec sort l =
+    let rec insert x s =
+        match s with 
+        [] -> [x]
+        |h::t ->
+            if x <= h
+                then x :: h :: t
+                else h :: insert x t
+    in
+        match l with
+        [] -> []
+        | h::t -> insert h (sort t);;
+
+```
+
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
+[2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html

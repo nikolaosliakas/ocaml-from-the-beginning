@@ -118,10 +118,121 @@ val drop : int -> 'a list -> 'a list = <fun>
 drop 2 [2;4;6;8;10];;
 - : int list = [6; 8; 10]
 ```
-## Making Lists
-[list-properties][1]<br>
+## Sorting Things
+[sorting-things][2]<br>
+
+### Insertion Sort
+If list is not empty, we have a head and a tail.
+Sort tail - then insert head into sorted tail.
+```ocaml
+let rec sort l =
+    match l with
+        [] -> []
+    |   h::t -> insert h (sort t);;    
+```
+Write the `insert` function
+
+```ocaml
+let rec insert x l =
+
+    match l with
+    [] -> [x]
+    | h::t ->
+        (*evaluate h if in correct place return the deconstructed l otherwise continue beyond h::t deconstructing recursively until you find correct place*)
+        if x <= h
+        then x :: h :: t
+        else h :: insert x t;;
+```
+Combine the two above for the _inserstion sort_ algo.
+
+```ocaml
+let rec insert x l =
+    match l with
+        [] -> [x]
+        | h::t ->
+            if x <= h
+            then x :: h :: t
+            else h :: insert x t
+
+let rec sort l =
+    match l with
+        [] -> []
+        |h::t -> insert h (sort t);;
+
+val insert : 'a -> 'a list -> 'a list = <fun>
+val sort : 'a list -> 'a list = <fun>
+```
+
+__Time Complexity of Insertion Sort__
+Each element may need to be inserted at the end of entire tail this means it takes time proportional to _n_. The `insert` function must be called as many times as there are elements. So _n_ * _n_ = _n^2_.
+
+### Merge Sort
+
+Merging two lists that are already sorted.
+```ocaml
+let rec merge x y =
+    match x, y with
+        [], l -> l
+    |   l, [] -> l
+    | hx::tx, hy::ty ->
+        if hx < hy
+            (*put hx first because it is smaller otherwise put hy first
+            -- *)
+            then hx :: merge tx (hy :: ty)
+            else hy :: merge (hx :: tx) ty;;
+val merge : 'a list -> 'a list -> 'a list = <fun>
+```
+Example from book on two sorted lists:
+```shell
+merge [9;53] [2;6;19]
+->  2 :: (merge [9;53] [6;19])
+->  2 :: 6 :: (merge [9;53] [19])
+->  2 :: 6 :: 9 :: (merge [53] [19])
+->  2 :: 6 :: 9 :: 19 :: (merge [53] [])
+->  2 :: 6 :: 9 :: 19 :: [53]
+->* [2; 6; 9; 19; 53]
+```
+How to get to Merge Sort:
+Use `length` , `take` and `drop` from previous chapter to split list into two halves.
+
+```ocaml
+ let rec msort l = 
+    match l with
+        [] -> []
+        | [x] -> [x]
+        (*get right elements and left elements and sort*)
+        | _ ->
+            let left = take (length l/2) l in
+            let right = drop (length l/2) l in
+            merge (msort left) (msort right);;
+val msort : 'a list -> 'a list = <fun>
+
+msort [53; 9; 2; 6; 19];;
+- : int list = [2; 6; 9; 19; 53]
+```
+```shell
+# Top half takes logn and same for bottom 2 * logn
+[6; 4; 5; 7; 2; 5; 3; 4] 
+[6; 4; 5; 7][2; 5; 3; 4] # msort continues to divide with take and drop
+[6; 4][5; 7][2; 5][3; 4]
+[6][4][5][7][2][5][3][4]
+#Merge works on each element so n
+[4; 6][5; 7][2; 5][3; 4] # merge takes the head of each single element list and merges them in the cortect sorting using inequality merge function.
+[4; 5; 6; 7][2; 3; 4; 5]
+[2; 3; 4; 4; 5; 5; 6; 7]
+
+# Total time complexity n * logn 
+```
+
+
+
+
+
+
+
 
 
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
+[2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
