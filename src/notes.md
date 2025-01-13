@@ -224,6 +224,75 @@ msort [53; 9; 2; 6; 19];;
 # Total time complexity n * logn 
 ```
 
+## Loading program from file
+[running in top-level from file][3]<br>
+
+```shell
+
+─( 08:26:54 )─< command 0 >─────────────────────{ counter: 0 }─
+utop # length [1;2;3;4];;
+Error: Unbound value length
+─( 08:26:54 )─< command 1 >─────────────────────{ counter: 0 }─
+utop # #use "lists.ml";;
+val length : 'a list -> int = <fun>
+val append : 'a list -> 'a list -> 'a list = <fun>
+─( 08:27:05 )─< command 2 >─────────────────────{ counter: 0 }─
+utop # length [1;2;3;4];;
+- : int = 4
+```
+## Functions upon Functions upon Functions
+
+### Map directly
+How to apply a function to every element of a list.
+
+```ocaml
+let rec map f l =
+    match l with
+    [] -> []
+    (* f is a function in the initial call a parameter 
+    that is 'called' to each h recursively until list is exhausted*)
+    | h::t -> f h :: map f t;;
+val map : ('a -> 'b) -> 'a list -> 'b list = <fun>
+```
+
+Evens without map
+```ocaml
+let rec evensw l =
+match l with
+[] -> []
+(*new list with bools for if modulo produces 0 or not*)
+|h::t -> (h mod 2 = 0):: evensw t;;
+val evensw : int list -> bool list = <fun>
+```
+Evens with map.
+```ocaml
+let rec is_even i =
+    i mod 2 = 0;;
+val is_even : int -> bool = <fun>
+let rec map f l =
+    match l with
+    [] -> []
+    |h::t -> f h :: map f t;;
+val map : ('a -> 'b) -> 'a list -> 'b list = <fun>
+(* Calling the function with a function and a list as args*)
+let l = [1;2;3;4;5;6;7;8];;
+val l : int list = [1; 2; 3; 4; 5; 6; 7; 8]
+
+map is_even l;;
+- : bool list = [false; true; false; true; false; true; false; true]
+```
+### Anonymous function
+
+```ocaml
+let evens l =
+    map (fun x -> x mod 2 = 0) l;;
+val evens : int list -> bool list = <fun>
+```
+syntax of anonymous function
+```ocaml
+fun <named arg> -> <function definition>)
+```
+
 
 
 
@@ -236,3 +305,4 @@ msort [53; 9; 2; 6; 19];;
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
+[3]:https://johnwhitington.net/ocamlfromtheverybeginning/split10.html
