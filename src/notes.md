@@ -241,7 +241,7 @@ utop # length [1;2;3;4];;
 - : int = 4
 ```
 ## Functions upon Functions upon Functions
-
+[anon-function][4]
 ### Map directly
 How to apply a function to every element of a list.
 
@@ -291,6 +291,9 @@ val evens : int list -> bool list = <fun>
 syntax of anonymous function
 ```ocaml
 fun <named arg> -> <function definition>)
+
+map (fun x -> x /2) [10;20;30];;
+- : int list = [5; 10; 15]
 ```
 
 
@@ -306,3 +309,4 @@ fun <named arg> -> <function definition>)
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
 [3]:https://johnwhitington.net/ocamlfromtheverybeginning/split10.html
+[4]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html

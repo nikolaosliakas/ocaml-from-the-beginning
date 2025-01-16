@@ -249,8 +249,153 @@ let rec sort l =
         | h::t -> insert h (sort t);;
 
 ```
+## Functions upon Functions upon Functions
+[anon-functions][3]
+1. Write a simple recursive function `calm` to replace exclamation marks in a __char list__ with periods.
+a. with recursion
+```ocaml
+let rec calm l =
+match l with
+[] -> []
+|h::t -> (if h = '!' then '.' else h):: calm t;;
+val calm : char list -> char list = <fun>
+
+(*From answers - way better!*)
+let rec calm l =
+match l with
+[] -> []
+|'!'::t -> '.':: calm t (*The case where h is '!'*)
+|h::t -> h :: calm t;;
+```
+b. with map
+```ocaml
+let calm l =
+map (fun x -> if x = '!' then '.' else x) l;;
+val calm : char list -> char list = <fun>
+
+(*From answers - way better!*)
+let calm_char x =
+match x with '!' -> '.' | _ -> x;;
+```
+
+2. a. Write a function clip which, given an integer, clips it to the range 1…10 so that integers bigger than 10 round down to 10, and those smaller than 1 round up to 1. 
+
+```ocaml
+let clip i =
+if i > 10 then 10
+else if i < 1 then 1
+else i;;
+val clip : int -> int = <fun>
+
+clip (-20);;
+- : int = 1
+clip 12;;
+- : int = 10
+clip 5;;
+- : int = 5
+```
+
+b. Write another function cliplist which uses this first function together with map to apply this clipping to a whole list of integers.
+```ocaml
+let cliplist l =
+map clip l ;;
+val cliplist : int list -> int list = <fun>
+
+cliplist [1;(-20);20; 5; 10];;
+- : int list = [1; 1; 10; 5; 10]
+```
+3. Express your function cliplist again, this time using an anonymous function instead of clip.
+```ocaml
+let cliplist l =
+map (fun x -> if x > 10 then 10 else if x < 1 then 1 else x) l ;;
+val cliplist : int list -> int list = <fun>
+```
+
+4. Write a function `apply` which, given another function, a number of times to apply it, and an initial argument for the function, will return the cumulative effect of repeatedly applying the function. For instance, apply f 6 4 should return f (f (f (f (f (f 4)))))). What is the type of your function?
+
+`let apply f <number of times> <initial arg>`
+```ocaml
+(*f - function, n - number of times to apply, a - init arg
+    From answers*)
+let rec apply f n a = 
+    if n = 0
+    then x (*base case 0 n *)
+    else f (apply f (n-1) x);; (* reduce problem size but return result of 0 n number of times*)
+val apply : ('a -> 'a) -> int -> 'a -> 'a = <fun>
+
+let power a b =
+apply (fun x -> x * a) b 1;;
+val power : int -> int -> int = <fun>
+
+(* power a b calculates a**b *)
+power 2 4;;
+- : int = 16
+```
+5. Modify the insertion sort function from the preceding chapter to take a comparison function, in the same way that we modified merge sort in this chapter. What is its type?
+
+```ocaml
+let rec sort cmp l =
+    let rec insert cmp x s =
+        match s with 
+        [] -> [x]
+        |h::t ->
+            if cmp x h
+                then x :: h :: t
+                else h :: insert cmp x t
+    in
+        match l with
+        [] -> []
+        | h::t -> insert cmp h (sort cmp  t);;
+val sort : ('a -> 'a -> bool) -> 'a list -> 'a list = <fun>
+```
+
+6. Write a function `filter` which takes a function of type α → bool and an α list and returns a list of just those elements of the argument list for which the given function returns true.
+
+```ocaml
+let rec filter f l =
+
+match l with 
+    [] -> []
+    |h::t -> if (f h) 
+        then h :: filter f t
+        else  filter f t;;
+val filter : ('a -> bool) -> 'a list -> 'a list = <fun>
+```
+
+7. Write the function `for_all` which, given a function of type α → bool and an argument list of type α list evaluates to true if and only if the function returns true for every element of the list. Give examples of its use.
+```ocaml
+let rec for_all f l=
+match l with
+    [] -> true
+    |h::t -> if (f h) then for_all f t else false;;
+val for_all : ('a -> bool) -> 'a list -> bool = <fun>
+
+(*From the questions, differs using && operator*)
+let rec for_all f l=
+match l with
+    [] -> true
+    |h::t -> f h && for_all f t;; 
+
+for_all (fun x -> x mod 2 = 0) [2;3;4;6;8];;
+- : bool = false
+for_all (fun x -> x mod 2 = 0) [2;4;6;8];;
+- : bool = true
+```
+
+8. Write a function `mapl` which maps a function of type α → β over a list of type α list list to produce a list of type β list list.
+
+```ocaml
+let rec mapl f l =
+match l with
+    [] -> []
+    |h::t -> 
+        map f h :: mapl f t;;
+val mapl : ('a -> 'b) -> 'a list list -> 'b list list = <fun>
+```
+
 
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
+[3]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
