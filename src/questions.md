@@ -392,10 +392,86 @@ match l with
         map f h :: mapl f t;;
 val mapl : ('a -> 'b) -> 'a list list -> 'b list list = <fun>
 ```
+## When Things Go Wrong
+[exceptions][4]
 
+1. Write a function smallest which returns the smallest positive element of a list of integers. If there is no positive element, it should raise the built-in Not_found exception.
+```ocaml
+(*From answers in book*)
+let rec smallest_inner current found l =
+match l with
+[] ->
+    if found then current else raise Not_found
+|h::t -> if h > 0 && h < current
+            then smallest_inner h true t (*condition found=true*)
+            else smallest_inner current found t
+let smallest l =
+    smallest_inner max_int false l;;
 
+val smallest_inner : int -> bool -> int list -> int = <fun>
+val smallest : int list -> int = <fun>
+```
+
+2. Write another function smallest_or_zero which uses the smallest function but if Not_found is raised, returns zero.
+```ocaml
+let smallest_or_zero l =
+    try smallest l with
+    Not_found -> 0;;
+val smallest_or_zero : int list -> int = <fun>
+```
+3. Write an exception definition and a function which calculates the largest integer smaller than or equal to the square root of a given integer. If the argument is negative, the exception should be raised.
+```ocaml
+(*largest int <= to sqrt of given int*)
+let larg_int_sq i =
+    let result =  int_of_float(sqrt(float_of_int i)) in
+    if result < 0 then
+        raise (Not_found)
+    else
+        result;;
+
+(*From the textbook*)
+
+let rec sqrt_inner x n =
+    if x * x > n
+        then x - 1
+    else
+        sqrt_inner(x + 1) n
+
+exception Complex
+
+let sqrt n =
+    if n < 0 then
+        raise Complex
+    else sqrt_inner 1 n;;
+
+val sqrt_inner : int -> int -> int = <fun>
+exception Complex
+val sqrt : int -> int = <fun>
+
+sqrt (-20);;
+Exception: Complex.
+```
+
+4. Write another function which uses the previous one, but handles the exception, and simply returns zero when a suitable integer cannot be found.
+```ocaml
+let prev_one n =
+    try sqrt n with
+    Complex -> 0;;
+prev_one (-20);;
+- : int = 0
+```
+5. Comment on the merits and demerits of exceptions as a method for dealing with exceptional situations, in contrast to returning a special value to indicate an error (such as -1 for a function normally returning a positive number).
+
+Merits of exceptions instead of special value
+- clearer for developer interpretation
+- explicit handling breaking type system
+
+Demerits of exceptions instead of special value
+- keeps same type but is out-of-range
+- allow for easier integration of function, as consuming functions do not need to handle exception explicitly.
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
 [3]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
+[4]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html

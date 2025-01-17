@@ -296,8 +296,52 @@ map (fun x -> x /2) [10;20;30];;
 - : int list = [5; 10; 15]
 ```
 
+## When Things Go Wrong
+[exceptions][5]
 
+Signalling bad arguments to user we cn use: `Invalid_argument` with a message in double-quotes.
+Ex. `else raise (Invlid_argument "take")`
 
+We can write our own exceptions using __`exception`__
+```ocaml
+(*Exceptions are capitalised *)
+# exception Problem;;
+exception Problem
+(*of with exception includes type information*)
+# exception NotPrime of int;;
+exception NotPrime of int
+(*Exceptions can be used with raise in our functions after definition*)
+let f x = if x < 0 then raise Problem else 100 /x;;
+val f : int -> int = <fun>
+
+# f 20;;
+- : int = 5
+
+# f (-4);;
+Exception: Problem.
+```
+
+Exceptions cn be _handled_.
+```ocaml
+let safe_divide x y = 
+    try x/y with
+    Division_by_zero -> 0;;
+val safe_divide : int -> int -> int = <fun>
+```
+Structure is `try` {something to try} `with` {user defined or built-in exception} `->` {output on failure}
+
+NB - the entire exception-handler must contain one and only one type.
+
+## Handling pattern-match failures
+
+```ocaml
+let rec last l =
+    match l with
+        [] -> raise Not_found
+    |   [x] -> x
+    |   _::t -> last t;;
+val last : 'a list -> 'a = <fun>
+```
 
 
 
@@ -310,3 +354,5 @@ map (fun x -> x /2) [10;20;30];;
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
 [3]:https://johnwhitington.net/ocamlfromtheverybeginning/split10.html
 [4]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
+[5]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
+
