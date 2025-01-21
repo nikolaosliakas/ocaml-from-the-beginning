@@ -610,6 +610,134 @@ let rec union a b =
     [] -> b
     | (k,v)::t -> add k v (union t b);;
 ```
+## More with functions
+[partial-application-functions][6]
+
+1. Rewrite the summary paragraph at the end of this chapter for the three argument function g a b c.
+
+```ocaml
+let g = fun a -> fun b -> fun c -> ...;;
+'a -> 'b -> 'g -> 'd
+'a -> ('b -> ('g -> 'd))
+(* This take right-associative
+    takes argument of type 'a and returns 'b -> ('g -> 'd)
+    which is a function when given 'b gives output 'g -> 'd
+    which is a function when given 'g returns something of type 'd.
+
+    We can apply just one or two or three args to function g
+*)
+```
+
+2. Recall the function member x l which determines if an element x is contained in a list l. What is its type? What is the type of member x? Use partial application to write a function member_all x ls which determines if an element is a member of all the lists in the list of lists ls.
+
+```ocaml
+member;;
+- : 'a -> 'a list -> bool = <fun>
+
+let member_all x ls =
+    let booleans = map (member x) ls in
+        not (member false booleans);;
+val member_all : 'a -> 'a list list -> bool = <fun>
+(* Use member and map
+    - this produces booleans (which is a bool list)
+    - then reapply member function to find false
+    - return the negation of this list of falses *)
+(* 
+    member_all two args ((x) and (ls))
+
+    booleans declared it contains map (member x) ls
+        - map function applies the outcome of (member x) - partial application of member to list provided by map as it iterates through ls
+
+*)
+
+```
+3. Why can we not write a function to halve all the elements of a list like this: map (( / ) 2) [10; 20; 30]? Write a suitable division function which can be partially applied in the manner we require.
+
+```ocaml
+let f l = map (( / ) 2) [10; 20; 30];;
+(* This actually is:
+[2/10; 2/20; 2/30] 
+The partial application applies 2 in this case as the first number!*)
+
+let rdiv x y = y/x;;
+val rdiv : int -> int -> int = <fun>
+
+let f l = map (rdiv  2) l;;
+val f : int list -> int list = <fun>
+
+let f = map (rdiv  2);;
+val f : int list -> int list = <fun>
+f [20;30;40];;
+- : int list = [10; 15; 20]
+```
+
+4. Write a function mapll which maps a function over lists of lists of lists. You must not use the let rec construct. Is it possible to write a function which works like map, mapl, or mapll depending upon the list given to it?
+
+```ocaml
+let mapll f = map (map (map f));;
+val mapll : ('a -> 'b) -> 'a list list list -> 'b list list list = <fun>
+
+
+ mapll ( ( * ) 2) [[[2;3;4];[5;6;7]];
+                    [[2;3;4]];
+                    [[5;6;7]]];;
+- : int list list list =
+[[[4; 6; 8]; [10; 12; 14]]; [[4; 6; 8]]; [[10; 12; 14]]]
+```
+_From the book_
+It is not possible to write a function which would map a function f over a list, or list of lists, or list of lists of lists depending upon its argument, because every function in OCaml must have a single type. If a function could map f over an α list list it must inspect its argument enough to know it is a list of lists, thus it could not be used on a β list unless β = α list.
+
+5. Write a function `truncate` which takes an integer and a list of lists, and returns a list of lists, each of which has been truncated to the given length. If a list is shorter than the given length, it is unchanged. Make use of partial application.
+
+```ocaml
+
+let rec truncate_inner n l =
+
+match l with
+[] -> []
+|h::t -> if n=0 then []
+        else h:: truncate_inner (n-1) t;;
+
+truncate_inner 3 [1;2;3;4;5];;
+- : int list = [1; 2; 3]
+
+(* Create the truncate function with map *)
+let truncate n ls = map (truncate_inner n) ls;;
+val truncate : int -> 'a list list -> 'a list list = <fun>
+let truncate n = map (truncate_inner n);;
+
+truncate 3 [[1;2;3;4;5];[17;24;35;4;5]];;
+- : int list list = [[1; 2; 3]; [17; 24; 35]]
+(* From text book *)
+let rec take n l = 
+    if n = 0 then [] else
+    match l with 
+    h::t -> h :: take (n-1) t
+
+let truncate_l n l =
+    if length l >=n then take n l else l;;
+
+let truncate n ll =
+    map (truncate_l n) ll
+```
+
+6. Write a function which takes a list of lists of integers and returns the list composed of all the first elements of the lists. If a list is empty, a given number should be used in place of its first element.
+
+```ocaml
+let first_num default_n l =
+
+    match l with
+    [] -> default_n
+    |h::t -> h;;
+val first_num : 'a -> 'a list -> 'a = <fun>
+
+let find_first default_n =
+    map (first_num default_n);;
+val find_first : 'a -> 'a list list -> 'a list = <fun>
+
+find_first [[1;2;3];[];[23;45;6];[74;44]];;
+```
+
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
@@ -617,3 +745,4 @@ let rec union a b =
 [3]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
 [4]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
 [5]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
+[6]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html

@@ -444,6 +444,74 @@ val key_exists : 'a -> ('a * 'b) list -> bool = <fun>
 Pairs are actually a particular instance of a general construct the _tuple_.
 Ex. `(1, false 'a')` has type __int x bool x char__
 
+## More with functions
+[in-depth-function][7]
+
+```ocaml
+let add x y = x + y
+add : int -> int -> int
+```
+`->` is right associative so `add : int -> int -> int` can be written `add : int -> (int -> int)`
+
+That is: 
+    _In truth, the function `add` is a function which, when you give it an integer, gives you a function which, when you give it an integer, gives the sum_
+
+__We can give a function with two arguments just one argument at a time__
+
+```ocaml
+let add x y = x + y
+val add : int -> int -> int = <fun>
+(*the function add has 2 parameters and one is already provided*)
+let f = add 6
+val f : int -> int = <fun>
+(*the function f passes any arg to add*)
+f 5
+- : int = 11
+```
+__partial application__
+- When defining `f` we used partial mapping
+    - `f` is a function that calls `add` with 6 as an arg. The partial application is explicit in the function type `int->int`.
+
+This is an instance of it
+`map (add 6) [10;20;30]`
+
+### Functions from operators
+`( * )`
+
+So:
+
+    `map (fun x -> x * 2) [10;20;30]`
+Can be:
+
+    `map (( x ) 2) [10;20;30]`
+
+```ocaml
+(* Without partial app *)
+let mapl f l =
+    match l with 
+    [] -> []
+    | h::t -> map f h :: mapl f t;;
+val mapl : ('a -> 'b) -> 'a list list -> 'b list list = <fun>
+(* With partial application *)
+
+let mapl f l = map (map f) l
+(* function is provided as the partial application mapping a map*)
+val mapl : ('a -> 'b) -> 'a list list -> 'b list list = <fun>
+
+(* 3 - you can go further! as //map f// already is 'a list -> 'b list which can be supplied AGAIN to map for a lists of lists *)
+let mapl f = map (map f)
+val mapl : ('a -> 'b) -> 'a list list -> 'b list list = <fun>
+```
+### Real structure of Multiple-argument functions
+```ocaml
+let add x y = x + y
+val add : int -> int -> int = <fun>
+
+(* Structure visible with anonymous functions *)
+let add = fun x -> fun y -> x + y
+val add : int -> int -> int = <fun>
+```
+
 
 
 
@@ -458,3 +526,4 @@ Ex. `(1, false 'a')` has type __int x bool x char__
 [4]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
 [5]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
 [6]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
+[7]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
