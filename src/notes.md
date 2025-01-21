@@ -223,7 +223,6 @@ msort [53; 9; 2; 6; 19];;
 
 # Total time complexity n * logn 
 ```
-
 ## Loading program from file
 [running in top-level from file][3]<br>
 
@@ -295,7 +294,6 @@ fun <named arg> -> <function definition>)
 map (fun x -> x /2) [10;20;30];;
 - : int list = [5; 10; 15]
 ```
-
 ## When Things Go Wrong
 [exceptions][5]
 
@@ -332,7 +330,7 @@ Structure is `try` {something to try} `with` {user defined or built-in exception
 
 NB - the entire exception-handler must contain one and only one type.
 
-## Handling pattern-match failures
+### Handling pattern-match failures
 
 ```ocaml
 let rec last l =
@@ -342,6 +340,110 @@ let rec last l =
     |   _::t -> last t;;
 val last : 'a list -> 'a = <fun>
 ```
+## Looking Things Up
+[dictionaries][6]
+
+Dictionaries and pairs
+```ocaml
+
+let p = (1,4);;
+val p : int * int = (1, 4)
+(*p is a pair because of the 'cross' x sign shown as an asterisk
+    pronounce "int cross int" *)
+
+ (*pairs can have mixed key and val types*)   
+let q = (1, '1')
+val q : int * char
+(*You can extract first and second elements from the pair with simple pattern matching*)
+let fst p = match p with (x, _) -> x;;
+val fst : 'a * 'b -> 'a = <fun>
+let snd p = match p with (_,y) -> y;;
+val snd : 'a * 'b -> 'b = <fun>
+
+(*Actually since pairs can only come in one form 'a * 'b then the pattern can be applied directly*)
+
+let fst (x,_) = x;;
+val fst : 'a * 'b -> 'a = <fun>
+let snd (_,y) = y;;
+val snd : 'a * 'b -> 'b = <fun>
+
+```
+
+### Storing a dictionary
+
+a _list of pairs_
+```ocaml
+let census = [(1,4); (2,2); (3, 2); (4, 3); (5,1); (6, 2)];;
+(*paranthesis around int x int*)
+val census : (int * int) list =
+  [(1, 4); (2, 2); (3, 2); (4, 3); (5, 1); (6, 2)]
+(* if not parantheses you would have time int x int list - ie one pair*)
+val y : int * int list = (1, [2;3;4]);;
+
+```
+
+### Operations on Dictionaries
+
+#### Lookup a value given a key
+```ocaml
+let rec lookup x l =
+    match l with
+        [] -> raise Not_found
+        (*unpacking each pair from head *)
+    |   (k, v):: t -> 
+        if k = x then v else lookup x t;;
+val lookup : 'a -> ('a * 'b) list -> 'b = <fun>
+```
+#### Adding an entry
+```ocaml
+let rec add k v d =
+match d with
+    [] -> [(k,v)]
+|   (k',v')::t -> 
+    (* unpack k' and v' from h  ->  
+    if keys are the same overwrite v' with v 
+        else retain and cons pair, continuing down the tail *)
+    if k = k' 
+        then (k, v):: t
+        else (k', v') :: add k v t;;
+val add : 'a -> 'b -> ('a * 'b) list -> ('a * 'b) list = <fun>
+
+(*Replaced value*)
+add 6 2 [(4, 5); (6, 3)];;
+- : (int * int) list = [(4, 5); (6, 2)]
+
+(*Add to dict*)
+add 6 2 [(4, 5); (3, 6)];;
+- : (int * int) list = [(4, 5); (3, 6); (6, 2)]
+```
+### Removing an entry
+```ocaml
+let rec remove k d =
+    match d with
+        [] -> []
+    | (k', v')::t ->
+        if k = k'
+            then t
+            else (k', v'):: remove k t;;
+(*if k exists then return t without h otherwise retain and continue*)
+val remove : 'a -> ('a * 'b) list -> ('a * 'b) list = <fun>
+```
+
+### Lookup checker 
+a `key exists bool checker`
+```ocaml
+let key_exists k d =
+    try
+        let _ = lookup k d in true
+    with
+        Not_found -> false;;
+val key_exists : 'a -> ('a * 'b) list -> bool = <fun>
+```
+
+### Tuple
+Pairs are actually a particular instance of a general construct the _tuple_.
+Ex. `(1, false 'a')` has type __int x bool x char__
+
 
 
 
@@ -355,4 +457,4 @@ val last : 'a list -> 'a = <fun>
 [3]:https://johnwhitington.net/ocamlfromtheverybeginning/split10.html
 [4]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
 [5]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
-
+[6]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html

@@ -470,8 +470,150 @@ Demerits of exceptions instead of special value
 - keeps same type but is out-of-range
 - allow for easier integration of function, as consuming functions do not need to handle exception explicitly.
 
+## Looking things up
+[dictionaries][5]
+
+1. Write a function to determine the number of different keys in a dictionary.
+
+Function to search list of keys
+```ocaml
+(*if item in list return list*)
+let rec search_key_list i l =
+    match l with
+    [] -> false
+    |h::t -> if h = i then true else search_key_list i t ;;
+val search_key_list : 'a -> 'a list -> bool = <fun>
+
+(*
+Keep track of unique keys as list
+Keep counter for each unique key
+*)
+
+et rec count_dist_keys count kl l =
+    match l with
+    [] -> count
+    |(k, _)::t -> if (search_key_list k kl) 
+                    then count_dist_keys count kl t
+                  (*Increment count by 1 add key to key list*)
+                  else
+                    count_dist_keys (count+1) (k::kl) t;; 
+val count_dist_keys : int -> 'a list -> ('a * 'b) list -> int = <fun>
+count_dist_keys 0 []
+  [(1, 4); (2, 2); (3, 2); (4, 3); (6, 1); (6, 2)];;
+- : int = 5
+
+count_dist_keys 0 []
+  [(1, 4); (2, 2); (3, 2); (4, 3); (5, 1); (6, 2)];;
+- : int = 6
+(*Book just says use length as keys must be unique...*)
+```
+2. Define a function `replace` which is like add, but raises Not_found if the key is not already there.
+```ocaml
+let rec replace k v l =
+match l with
+[] -> raise (Not_found)
+|(k',v')::t -> if k' = k 
+    then (k, v)::t
+    else (k',v')::replace k v t;;
+```
+3. Write a function to build a dictionary from two equal length lists, one containing keys and another containing values. Raise the exception `Invalid_argument` if the lists are not equal length.
+
+```ocaml
+let rec length l = 
+  match l with
+    [] -> 0
+  | h::t -> 1 + length t
+
+let compare_length keys vals =
+length keys = length vals
+
+let rec build_dict keys vals dict =
+if compare_length keys vals then
+    match keys, vals with
+        [], [] -> dict
+        (*unpack each list simultaneously and provide to add function*)
+     |   hk::tk, hv::tv -> build_dict tk tv (add hk hv dict)
+else
+    raise (Invalid_argument "lengths of keys and values are unequal!");;
+val build_dict : 'a list -> 'b list -> ('a * 'b) list -> ('a * 'b) list = <fun>
+
+(*Much more succinct and pattern matching handles inequality!*)
+
+let rec mkdict keys values =
+    match keys, values with
+    [], [] -> []
+    (* Either keys or values reaches an empty list state before the other thus unequal *)
+    |[], _ -> raise (Invalid_argument "mkdict")
+    |_, [] -> raise (Invalid_argument "mkdict") 
+    (*unpack from each - express pair and cons list constructor*)
+    | k::ks, v::vs -> (k,v):: mkdict ks vs
+val mkdict : 'a list -> 'b list -> ('a * 'b) list = <fun>
+```
+
+4. Now write the inverse function: given a dictionary, return the pair of two lists – the first containing all the keys, and the second containing all the values.
+
+```ocaml
+let rec mklists d kl vl =
+match d with
+[] -> (kl, vl)
+|(k,v)::t -> mklists t (k::kl) (v::vl)
+val mklists : ('a * 'b) list -> 'a list -> 'b list -> 'a list * 'b list = <fun>
+
+mklists [(1, 4); (2, 2); (3, 2); (4, 3); (5, 1); (6, 2)] [] [];;
+- : int list * int list = ([6; 5; 4; 3; 2; 1], [2; 1; 3; 2; 2; 4])
+
+(*Solution from Questions*)
+
+let rec mklists l =
+[] -> ([],[])
+|(k,v)::more ->
+    let (ks, vs) = mklists more in
+        (* (ks, kv) -> (k::ks, v::vs) *)
+        (* this has only one form so can be re-written as *)
+        (k::ks, v::vs)
+val mklists : ('a * 'b) list -> 'a list * 'b list 
+```
+5. Define a function to turn any list of pairs into a dictionary. If duplicate keys are found, the value associated with the first occurrence of the key should be kept.
+
+```ocaml
+let rec mkdir_fromlist l  =
+match l with
+    [] -> []
+    |(k,v)::more -> (k,v) :: mkdir_fromlist (remove k more);;
+val mkdir_fromlist : ('a * 'b) list -> ('a * 'b) list = <fun>
+
+mkdir_fromlist [(1, 4); (2, 2); (3, 2); (2,9); (5, 1); (6, 2)];;
+- : (int * int) list = [(1, 4); (2, 2); (3, 2); (5, 1); (6, 2)]
+(* From the book *)
+
+let rec dictionary_of_pairs_inner keys_seen l =
+match l with
+[] -> []
+| (k, v)::t -> 
+    if member k keys_seen
+        then dictionary_of_pairs_inner keys_seen t
+        else (k,v) :: dictionary_of_pairs_inner (k::keys_seen) t;;
+val dictionary_of_pairs_inner : 'a list -> ('a * 'b) list -> ('a * 'b) list =
+  <fun>
+
+dictionary_of_pairs_inner [] [(1, 4); (2, 2); (3, 2); (2,9); (5, 1); (6, 2)];;
+- : (int * int) list = [(1, 4); (2, 2); (3, 2); (5, 1); (6, 2)]
+```
+
+6. Write the function union a b which forms the union of two dictionaries. The union of two dictionaries is the dictionary containing all the entries in one or other or both. In the case that a key is contained in both dictionaries, the value in the first should be preferred.
+
+```ocaml
+(*From answers*)
+(*Add function overrides existing dictionary pair, and adds non-existent pair*)
+let rec union a b =
+    match a with
+    [] -> b
+    | (k,v)::t -> add k v (union t b);;
+```
+
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
 [3]:https://johnwhitington.net/ocamlfromtheverybeginning/split11.html
 [4]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
+[5]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
