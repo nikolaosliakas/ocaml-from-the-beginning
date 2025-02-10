@@ -733,7 +733,7 @@ val first_num : 'a -> 'a list -> 'a = <fun>
 
 let find_first default_n =
     map (first_num default_n);;
-val find_first : 'a -> 'a list list -> 'a list = <fun>
+val find_first : 'a -> 'a list list -> 'a list = <fun>/'|
 
 find_first [[1;2;3];[];[23;45;6];[74;44]];;
 ```

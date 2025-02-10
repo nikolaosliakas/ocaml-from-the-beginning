@@ -511,8 +511,165 @@ val add : int -> int -> int = <fun>
 let add = fun x -> fun y -> x + y
 val add : int -> int -> int = <fun>
 ```
+## Intro to types
+[New Kinds of Data][8]
+
+Use `type` to introduce new types.
+Ex: `type colour = Red | Green | Blue | Yellow;`
+- Four _constructors_ possible forms a value of type colour can make.
+
+col : colour
+cols : colour __list__
+colpair : char x colour
+```ocaml
+type colour = Red | Green | Blue | Yellow;;
+
+let col = Blue
+val col : colour = Blue
+
+let cols = [Red; Red; Green; Yellow]
+val cols : colour list = [Red; Red; Green; Yellow]
+
+let colpair = ('R', Red)
+val colpair : char * colour = ('R', Red)
+```
+
+Expand colour for all RGB 255 colours
+```ocaml
+type colour =
+  Red
+| Green
+| Blue
+| Yellow
+| RGB of int * int * int
+type colour = Red | Green | Blue | Yellow | RGB of int * int * int
+```
+The RGB of int x int x int is still type `colour`.
+
+We can write functions that pattern match our type:
+```ocaml
+let components c =
+    match c with
+      Red -> (255, 0, 0)
+    | Green -> (0, 255, 0)
+    | Blue -> (0, 0,255)
+    | Yellow -> (255, 255, 0)
+    | RGB (r, g, b) -> (r, g, b)
+val components : colour -> int * int * int = <fun>
+```
+
+### Some type variable 'a- Polymorphism
+
+```ocaml
+# type 'a option = None | Some of 'a
+type 'a option = None | Some of 'a
+```
+A value of type 'a option is either nothing or something of type a.
+
+Examples:
+```ocaml
+let nothing = None;;
+val nothing : 'a option = None
+
+let number = Some 50;;
+val number : int option = Some 50
+
+let numbers = [Some 12; None; None; Some 2];;
+val numbers : int option list = [Some 12; None; None; Some 2]
+
+let word = Some ['c'; 'a'; 'k'; 'e'];;
+val word : char list option = Some ['c'; 'a'; 'k'; 'e']
+```
+
+__The option typ eis useful as a more manageable alternative to exceptions where the lack of an answer is a common occurence (rather than actually exceptional)__ Like looking up a word in a dictionary me return `None`.
+
+```ocaml
+let rec lookup_opt x l =
+  match l with
+    [] -> None
+    | (k,v)::t -> if x = k then Some v else lookup_opt x t;;
+val lookup_opt : 'a -> ('a * 'b) list -> 'b option = <fun>
+```
+
+### Types defined recursively
+
+```ocaml
+type 'a sequence = Nil | Cons of 'a * 'a sequence;;
+```
+Two constructors:
+`Nil` which is equivalent to `[]`
+`Cons` which is equivalent to `::` operator.
+    - Cons _carries_ two pieces of data with it 
+        - the head `'a` and the tail `'a sequence`.
+        - the head is a single element the tail is a seqence of `'a`.
 
 
+| Built-in | Ours | Our Type |
+|----------|---------------|-------|
+| `[]`     | `Nil`                          |   'a sequence|
+| `[1]`     | `Cons (1, Nil)`               |   int sequence|
+| `['a'; 'x'; 'e']`     | `Cons ('a', Cons( 'x', Cons ('e', Nil)))` | char sequence |
+| `[Red; RGB (20, 20, 20)]`     | `Cons (Red, Cons (RDG(20,20,20), Nil))`                          |   colour sequence|
+
+The last element of a list is costly to get because it is deeper in the structure in OCaml.
+
+```ocaml
+(*Is as complete as OCaml native notation *)
+let rec length_native l =
+match l with
+    [] -> 0
+    | _::t -> 1 + length_native l;;
+
+let rec length_func s =
+match s with
+    Nil -> 0
+| Cons (_,t) -> 1 + length t;;
+
+val length_native : 'a list -> int = <fun>
+val length_func : 'a sequence -> int = <fun>
+
+let rec append_native a b =
+match a with
+    [] -> b
+    | h::t -> h :: append_native t b;;
+let rec append_func a b =
+match a with
+Nil -> b
+| Cons (h, t) -> Cons (h, append_func t b);;
+val append_func : 'a sequence -> 'a sequence -> 'a sequence = <fun>
+val append_native : 'a list -> 'a list -> 'a list = <fun>
+```
+### Typing for mathematical expression
+
+Expression __1 + 2 x 3__
+```ocaml
+type expr =
+Num of int
+| Add of expr * expr
+| Subtract of expr * expr
+| Multiply of expr * expr
+| Divide of expr * expr;;
+
+Add (Num 1, Multiply (Num 2, Num 3)) (*Expresses the tree reductions *)
+
+let rec evaluate e =
+    match e with
+          Num -> x
+        | Add (e, e') -> evaluate e + evaluate e'
+        | Subtract (e, e') -> evaluate e - evaluate e'
+        | Multiply (e, e') -> evaluate e * evaluate e'
+        | Divide (e, e') -> evaluate e / evaluate e';;
+let rec evaluate e =
+    match e with
+          Num x -> x
+        | Add (e, e') -> evaluate e + evaluate e'
+        | Subtract (e, e') -> evaluate e - evaluate e'
+        | Multiply (e, e') -> evaluate e * evaluate e'
+        | Divide (e, e') -> evaluate e / evaluate e';;
+val evaluate : expr -> int = <fun>
+evaluate (Add (Num 1, Multiply (Num 2, Num 3))) ;;
+- : int = 7
+```
 
 
 
@@ -527,3 +684,4 @@ val add : int -> int -> int = <fun>
 [5]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
 [6]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
 [7]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
+[8]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
