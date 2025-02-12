@@ -671,6 +671,154 @@ evaluate (Add (Num 1, Multiply (Num 2, Num 3))) ;;
 - : int = 7
 ```
 
+## Growing Trees
+[Growing Trees][9]
+
+Tree polymorphic<br>
+     Br - branches hold three things in tuple:
+    1. element
+    2. left sub-tree 
+    3. right-subtree
+    OR Lf-leaf
+
+```ocaml
+type 'a tree = Br of 'a * 'a tree * 'a tree | Lf;;
+```
+
+__Calc num of elemtns in tree__
+```ocaml
+let rec size tr =
+    match tr with
+    Br (_, l, r) -> 1 + size l + size r
+    | Lf -> 0;;
+val size : 'a tree -> int = <fun>
+```
+__Add all ints in tree__
+```ocaml
+# let rec total tr =
+    match tr with
+    Br (x, l, r) -> x + total l + total r
+    | Lf -> 0;;
+val total : int tree -> int = <fun>
+
+# let  my_tree = Br(2, Br(11, Lf, Lf), Br(5,Lf, Br(20, Lf, Lf)));;
+val my_tree : int tree = Br (2, Br (11, Lf, Lf), Br (5, Lf, Br (20, Lf, Lf)))
+
+# total my_tree;;
+- : int = 38
+```
+
+__Calc depth of tree__
+- longest path from root to leaf
+```ocaml
+# let max x y =
+    if x > y then x else y;;
+val max : 'a -> 'a -> 'a = <fun>
+
+(*Lf = 0, When reaching a branch count 1 and add to the max of each Br we meet will add one. At each exit max will select the higher output of the function with the final branch 
+looking like: -> 1 + max(Lf=0 , Lf=0)
+    -> 1 + 0 *)
+# let rec maxdepth tr =
+    match tr with
+    Br (_, l, r) -> 1 + max (maxdepth l) (maxdepth r)
+    | Lf -> 0;;
+val maxdepth : 'a tree -> int = <fun>
+
+# maxdepth my_tree;;
+- : int = 3
+```
+___Tree to List__
+```ocaml
+# let rec list_of_tree tr =
+    match tr with
+    Br(x, l, r) -> list_of_tree l @ [x] @ list_of_tree r
+    | Lf -> [];;
+val list_of_tree : 'a tree -> 'a list = <fun>
+```
+We put all elements from the left branch before x and vise versa for the right branch. Tree can be flattened other ways.
+
+__Mapping over trees__
+
+```ocaml
+let rec tree_map f tr =
+    match tr with
+        (*Apply f to central branch value and then left and right branches recursion with function to each sub-branch*)
+        Br(x, l, r) -> Br (f x, tree_map f l, tree_map f r)
+        |Lf -> Lf;;
+val tree_map : ('a -> 'b) -> 'a tree -> 'b tree = <fun>
+```
+
+### Binary Search Tree
+Definiting dictionaries with trees rather than lists
+
+Search time in dictionaries defined as list pairs
+ - O(n) - proportionate to number of elements in list.
+Search time in dictionaries defined as trees
+ - O(logn) - log base 2 of the number of elements in the dict
+
+ __Setup Binary Tree__
+ Each branch
+    - Left branches have keys less than Branch key
+    - Right branches have keys greater than Branch Key
+```ocaml
+# let my_tree_dict = Br ((3, "three"), Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf)), Br ((4, "four"), Lf, Lf));;
+(*Key int - Val string*)
+val my_tree_dict : (int * string) tree =
+  Br ((3, "three"), Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf)),
+   Br ((4, "four"), Lf, Lf))
+```
+__Search when tree is balanced__
+1. Start at top
+2. If key is not there, go left and right based on inequality of integers (ie - go left if integer is smaller, go right if it is larger)
+3. Lf = key is not in tree - raise exception.
+
+```ocaml
+let rec lookup tr k =
+match tr with
+Lf -> raise Not_found
+| Br ( (k', v), l, r) ->
+    if k = k' then v
+    else if k < k' then lookup l k
+    else lookup r k;;
+val lookup : ('a * 'b) tree -> 'a -> 'b = <fun>
+```
+Same but with Option type
+```ocaml
+let rec lookup tr k =
+match tr with
+Lf -> None
+| Br ( (k', v), l, r) ->
+    if k = k' then Some v
+    else if k < k' then lookup l k
+    else lookup r k;;
+val lookup : ('a * 'b) tree -> 'a -> 'b option = <fun>
+(* type 'a option = Some of 'a | None; *)
+```
+
+#### Inserting into tree
+```ocaml
+let rec insert tr k v =
+    match tr with
+        Lf -> Br ((k, v), Lf, Lf)
+      | Br((k', v'), l, r) -> 
+            if k' = k then Br ((k, v), l, r)
+            else if k < k' then Br ((k', v'), insert l k v, r)
+            else Br ((k', v'), l, insert r k v);;
+
+val insert : ('a * 'b) tree -> 'a -> 'b -> ('a * 'b) tree = <fun>
+
+(*Before insertion*)
+# let my_tree_dict = Br ((3, "three"), Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf)), Br ((4, "four"), Lf, Lf));;
+
+(*After insertion*)
+# insert my_tree_dict 30 "thirty";;
+- : (int * string) tree =
+Br ((3, "three"), Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf)),
+ Br ((4, "four"), 
+        Lf, 
+        Br ((30, "thirty"), Lf, Lf)
+    ))
+````
 
 
 
@@ -685,3 +833,4 @@ evaluate (Add (Num 1, Multiply (Num 2, Num 3))) ;;
 [6]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
 [7]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
 [8]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
+[9]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
