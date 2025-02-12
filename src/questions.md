@@ -489,7 +489,7 @@ Keep track of unique keys as list
 Keep counter for each unique key
 *)
 
-et rec count_dist_keys count kl l =
+let rec count_dist_keys count kl l =
     match l with
     [] -> count
     |(k, _)::t -> if (search_key_list k kl) 
@@ -905,7 +905,191 @@ try Some (evaluate my_division) with Division_by_zero -> None;;
 - : int option = None
 ```
 
+## Growing Trees
+[Trees][8]
+1. Write function `'a -> 'a tree -> bool` to determine if a given element is a tree. 
 
+Write a search if Lf comes up pattern match false else true
+
+```ocaml
+# let rec search_for_elem e tr =
+    match tr with
+        Lf -> false
+        |Br(e', l, r) -> 
+            if e' = e then true
+            else search_for_elem e l || search_for_elem e r;;
+        (*From textbook without test if*)
+        |Br(e', l, r) -> e' = e || search_for_elem e l  || search_for_elem e r;; 
+val search_for_elem : 'a -> 'a tree -> bool = <fun>
+
+# search_for_elem 21 my_tree;;
+- : bool = false
+
+# search_for_elem 20 my_tree;;
+- : bool = true
+```
+2. Write a function which flips a tree left to right such that, if it were drawn on paper, it would appear to be a mirror image.
+
+```ocaml
+let rec flip_tree tr =
+    match tr with
+        Br(x, l, r) -> Br(x, flip_tree r, flip_tree l)
+        | Lf -> Lf;;
+val flip_tree : 'a tree -> 'a tree = <fun>
+(*Before flip*)
+# my_tree;;
+- : int tree = Br (2, Br (11, Lf, Lf), Br (5, Lf, Br (20, Lf, Lf)))
+        2
+    11      5
+                20
+(*After flip*)
+# flip_tree my_tree;;
+- : int tree = Br (2, Br (5, Br (20, Lf, Lf), Lf), Br (11, Lf, Lf))
+
+        2
+    5      11
+20         
+```
+
+3. Write a function to determine if two trees have the same shape, irrespective of the actual values of the elements.
+
+```ocaml
+let rec compare_tree_shape x y =
+    match x, y with
+    Br(_, xl, xr), Br(_, yl, yr) -> compare_tree_shape xl yl && compare_tree_shape xr yr
+    | Lf , Lf -> true
+    | _, _ -> false;;
+val compare_tree_shape : 'a tree -> 'b tree -> bool = <fun>
+```
+
+4. Write a function `tree_of_list` which builds a tree representation of a dictionary from a list representation of a dictionary.
+
+```ocaml
+(*Use int keys to build tree*)
+
+# let tree_of_list empty_tree d  =
+match d with
+    [] -> Lf
+  | (k, v)::t -> tree_of_list (insert empty_tree k  v) t;;
+val tree_of_list : ('a * 'b) tree -> ('a * 'b) list -> ('a * 'b) tree = <fun>
+
+# tree_of_list Lf [(1, "one"); (2, "two"); (3, "three"); (4, "four"); (5, "five"); (6, "six")];;
+- : (int * string) tree = Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf))
+(*My solution above - coun't figureit out...
+From the textbook*)
+
+# let rec tree_of_list d =
+    match d with
+        [] -> Lf
+        | (k,v)::t -> insert (tree_of_list t) k v;;
+val tree_of_list : ('a * 'b) list -> ('a * 'b) tree = <fun>
+
+# tree_of_list [(1, "one"); (2, "two"); (3, "three"); (4, "four"); (5, "five"); (6, "six")];;
+- : (int * string) tree =
+Br ((6, "six"),
+ Br ((5, "five"),
+  Br ((4, "four"),
+   Br ((3, "three"), Br ((2, "two"), Br ((1, "one"), Lf, Lf), Lf), Lf), Lf),
+  Lf),
+ Lf)
+```
+5. Write a function to combine two dictionaries represented as trees into one. In the case of clashing keys, prefer the value from the first dictionary.
+
+```ocaml
+(*Notes try using a dict list as an intermediary
+- Use Add and Union from list pairs above 
+*)
+# let combine_tree_dicts x y =
+
+tree_of_list (
+    (union (list_of_tree x) (list_of_tree y))
+);;
+val combine_tree_dicts : ('a * 'b) tree -> ('a * 'b) tree -> ('a * 'b) tree =
+  <fun>
+# combine_tree_dicts (Br ((6, "thebestplaceintheworld"),
+ Br ((5, "five"),
+  Br ((4, "four"),
+   Br ((3, "three"), Br ((2, "two"), Br ((1, "one"), Lf, Lf), Lf), Lf), Lf),
+  Lf),
+ Lf)) (Br ((6, "six"),
+ Br ((5, "five"),
+  Br ((4, "four"),
+   Br ((3, "three"), Br ((2, "two"), Br ((1, "one"), Lf, Lf), Lf), Lf), Lf),
+  Lf),
+ Lf));;
+- : (int * string) tree =
+Br ((6, "thebestplaceintheworld"),
+ Br ((5, "five"),
+  Br ((4, "four"),
+   Br ((3, "three"), Br ((2, "two"), Br ((1, "one"), Lf, Lf), Lf), Lf), Lf),
+  Lf),
+ Lf)
+
+ (*The text-website does not guarantee uniqueness!*)
+ # let tree_union t t' =
+ tree_of_list( (list_of_tree t) @ (list_of_tree t'));;
+ val tree_union : ('a * 'b) tree -> ('a * 'b) tree -> ('a * 'b) tree =
+  <fun>
+  (*From website: tree_of_list will prefer keys placed earlier so we appended t' to t rather than the reverse (preference for t' keys!*)
+```
+
+6. Can you define a type for trees which, instead of branching exactly two ways each time, can branch zero or more ways, possibly different at each branch? Write simple functions like `size`, `total`, and `map` using your new type of tree.
+
+```ocaml
+type 'a tree = Lf | Br of 'a option;;
+(*Completely wrong
+From answers:
+We will use a list for the sub-trees of each branch, with the empty list signifying 
+there are no more i.e. that this is the bottom of the tree. 
+Thus, we only need a single constructor.
+*)
+type 'a mtree = Branch of 'a * 'a mtree list;;
+```
+
+Size
+```ocaml
+(*With binary tree*)
+let rec size tr =
+    match tr with
+    Br (_, l, r) -> 1 + size l + size r
+    | Lf -> 0;;
+(*With multi sort tree*)
+let rec size tr =
+    match tr with
+    Br (e, l) -> 1 + sum(map size l));;
+    
+
+```
+total
+```ocaml
+(*With binary tree*)
+# let rec total tr =
+    match tr with
+    Branch (x, l, r) -> x + total l + total r
+    | Lf -> 0;;
+val total : int tree -> int = <fun>
+(*With multi sort tree*)
+let rec total tr =
+    match tr with
+    Branch (e, l) -> e + sum(map total l));;
+```
+map
+```ocaml
+(*With binary tree*)
+let rec tree_map f tr =
+    match tr with
+        Br(x, l, r) -> Br (f x, tree_map f l, tree_map f r)
+        |Lf -> Lf;;
+val tree_map : ('a -> 'b) -> 'a tree -> 'b tree = <fun>
+(*With multi sort tree*)
+
+let rec map_mtree f tr =
+    match tr with
+    (*Partial application of map_mtree*)
+    Branch(e, l) -> Branch(f e, map (map_mtree f) l);;
+val map_mtree : ('a -> 'b) -> 'a mtree -> 'b mtree = <fun>
+
+```
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
@@ -915,3 +1099,4 @@ try Some (evaluate my_division) with Division_by_zero -> None;;
 [5]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
 [6]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
 [7]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
+[8]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
