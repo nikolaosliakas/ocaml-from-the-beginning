@@ -738,6 +738,174 @@ val find_first : 'a -> 'a list list -> 'a list = <fun>/'|
 find_first [[1;2;3];[];[23;45;6];[74;44]];;
 ```
 
+## Intro to types
+[New Kinds of Data][7]
+
+1. Design a new type rect for representing rectangles. Treat squares as a special case.
+
+```ocaml
+type rect = Rectangle of int * int | Square of int;;
+```
+2. Now write a function of type rect → int to calculate the area of a given rect.
+```ocaml
+let calc_rect shape =
+    match shape with
+        Rectangle (x,y) -> x * y
+        |Square (x) -> x * x;;
+val calc_rect : rect -> int = <fun>
+
+let my_shape = Rectangle (4,5);;
+val my_shape : rect = Rectangle (4, 5)
+calc_rect my_shape;;
+- : int = 20
+
+let my_square = Square 4;;
+val my_square : rect = Square 4
+
+calc_rect my_square;;
+ : int = 16
+```
+3. Write a function which rotates a rect such that it is at least as tall as it is wide
+
+```ocaml
+let rotate_rect shape = 
+match shape with
+    Square _ -> shape
+    | Rectangle (w,h) -> if w > h then Rectangle (h, w) else shape;;
+
+(*If we have a rectangle with a Bigger width than height, rotate by 90degrees*)
+val rotate_rect : rect -> rect = <fun>
+```
+4. Use the function of (3) which, given a rect list, returns another such list which has the smallest total width and whose members are sorted narrowest first.
+
+```ocaml
+(*From textbook answers*)
+(*map to perform rotation on any rects that need it, we will then use a sorting function from previous chapter which takes a comparison function and uses it to 'sort'*)
+let width_of_rect r =
+    match r with
+    Square s -> s
+    | Rectangle (w, _) -> w;;
+val width_of_rect : rect -> int = <fun>
+
+let rect_compare a b =
+width_of_rect a < width_of_rect b;;
+val rect_compare : rect -> rect -> bool = <fun>
+
+let pack rects =
+    sort rect_compare (map rotate_rect rects);;
+val pack : rect list -> rect list = <fun>
+
+pack [Square 6; Rectangle (4, 3); Rectangle (5, 6); Square 2];;
+- : rect list = [Square 2; Rectangle (3, 4); Rectangle (5, 6); Square 6]
+```
+
+5. Write a `take`, `drop`, and `map` functions for seqence type.
+Original map
+```ocaml
+let rec map f l =
+    match l with
+    [] -> []
+    (* f is a function in the initial call a parameter 
+    that is 'called' to each h recursively until list is exhausted*)
+    | h::t -> f h :: map f t;;
+val map : ('a -> 'b) -> 'a list -> 'b list = <fun>
+```
+sequence type map:
+```ocaml
+# type 'a sequence = Nil | Cons of 'a * 'a sequence;;
+type 'a sequence = Nil | Cons of 'a * 'a sequence
+
+ let rec map f l =
+    match l with
+        Nil -> Nil
+        |Cons (h, t) ->  Cons (f h, map f t);;
+val map : ('a -> 'b) -> 'a sequence -> 'b sequence = <fun>
+```
+
+Original take and drop:
+```ocaml
+let rec take n l = 
+    if n = 0 then [] else
+    match l with 
+[] -> []
+|    h::t -> h :: take (n-1) t;;
+val take : int -> 'a list -> 'a list = <fun>
+
+let rec drop n l = 
+if n = 0 then l else
+match l with
+    [] -> []
+    |_::t -> drop (n-1) t;;
+val drop : int -> 'a list -> 'b list = <fun>
+```
+sequence versions:
+```ocaml
+let rec take n l =
+if n = 0 then Nil else
+    match l with
+    Nil -> Nil
+    |Cons(h, t) -> Cons(h, take (n-1) t);;
+
+let rec drop n l =
+if n = 0 then l else
+match l with
+Nil -> Nil
+|Cons(_, t) -> drop (n-1) t;;]
+
+(*From the textbook*)
+let rec take n l =
+if n = 0 then Nil else
+    match l with
+    Nil -> raise (Invalid_argument "take")
+    |Cons(h, t) -> Cons(h, take (n-1) t);;
+val take : int -> 'a sequence -> 'a sequence = <fun>
+
+let rec drop n l =
+if n = 0 then l else
+    match l with
+    Nil -> raise (Invalid_argument "drop")
+    | Cons(_,l) -> drop (n-1) l;;
+val drop : int -> 'a sequence -> 'a sequence = <fun>
+```
+6. Extend the `expr` and the `evaluate` function to allow raising a number to a power
+
+
+```ocaml
+type expr =
+    Num of int
+    | Add of expr * expr
+    | Subtract of expr * expr
+    | Multiply of expr * expr
+    | Divide of expr * expr
+    | Power of expr * expr;;
+
+let rec power x n =
+match n with
+0 -> 1
+|_ -> x * power x (n-1);;
+let rec evaluate expr =
+match expr with
+    Num x -> x
+    | Add(e, e') -> evaluate e + evaluate e'
+    | Subtract(e, e') -> evaluate e - evaluate e'
+    | Multiply(e, e') -> evaluate e * evaluate e'
+    | Divide(e, e') -> evaluate e / evaluate e'
+    | Power(e, e') -> power (evaluate e) (evaluate e');;
+val evaluate : expr -> int = <fun>
+```
+7. Use the option type to deal with the problem that Division_by_zero may be raised from the evaluate function.
+
+```ocaml
+type 'a option = None | Some of 'a;;
+
+let my_division = Divide(Num 4,Num 0);;
+val my_division : expr = Divide (Num 4, Num 0)
+(*Super important option that allows for native optional return*)
+try Some (evaluate my_division) with Division_by_zero -> None;;
+- : int option = None
+```
+
+
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
@@ -746,3 +914,4 @@ find_first [[1;2;3];[];[23;45;6];[74;44]];;
 [4]:https://johnwhitington.net/ocamlfromtheverybeginning/split12.html
 [5]:https://johnwhitington.net/ocamlfromtheverybeginning/split13.html
 [6]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
+[7]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
