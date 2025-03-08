@@ -581,7 +581,7 @@ let word = Some ['c'; 'a'; 'k'; 'e'];;
 val word : char list option = Some ['c'; 'a'; 'k'; 'e']
 ```
 
-__The option typ eis useful as a more manageable alternative to exceptions where the lack of an answer is a common occurence (rather than actually exceptional)__ Like looking up a word in a dictionary me return `None`.
+__The option type is useful as a more manageable alternative to exceptions where the lack of an answer is a common occurence (rather than actually exceptional)__ Like looking up a word in a dictionary me return `None`.
 
 ```ocaml
 let rec lookup_opt x l =
@@ -818,11 +818,184 @@ Br ((3, "three"), Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf)),
         Lf, 
         Br ((30, "thirty"), Lf, Lf)
     ))
-````
+```
 
+## In and Out
+[IO stuff][10]
 
+"Interactivity turns out to be suprisingly hard to reason about, since the result of a function may not longer depend only on its initial argument."
 
+### Writing to the screen
 
+```ocaml
+# print_int 100;;
+100- : unit = ()
+``` 
+Prints an integer to the screen.
+Returns nothing called a __unit__ `()`
+Type of the function about is __int -> unit__
+`print_string` has type __string ->  unit__
+`print_newline` has type __unit -> unit__ It takes no value UNIT and produces not useful result. AKA side-effect!
+
+__Side Effects__
+- multiple side effects can be produced with `;`
+- `;` evaluates everything to the left and throws the result (usually a unit) then evaluating everything on the right
+- `;` is a bit like an operator.
+
+```ocaml
+let print_dict_entry (k, v) =
+    print_int k ; print_newline () ; print_string v ; print_newline ()
+val print_dict_entry : int * string -> unit = <fun>
+
+print_dict_entry (1, "one");;
+1
+one
+- : unit = ()
+```
+
+__Printing a dict__
+```ocaml
+let rec iter f l =
+    match l with
+    [] -> ()
+    | h::t -> f h; iter f t;;
+val iter : ('a -> 'b) -> 'a list -> unit = <fun>
+(*'b will be unit!
+    do this then move on discarding the result
+*)
+
+# let print_dict = 
+iter print_dict_entry;;
+val print_dict : (int * string) list -> unit = <fun>
+```
+
+```ocaml
+print_dict [(1, "one");(2,"two");(3, "three")];;
+1
+one
+2
+two
+3
+three
+- : unit = ()
+```
+
+### Reading from the keyboard
+`read_int` type __unit -> int__
+`read_line` type __unit -> string__
+
+Wait for typing then `Enter` key to read in.
+```ocaml
+# read_line ();;
+    Hello World from utop!
+- : string = "Hello World from utop!"
+```
+
+A series of integers and strings 1 per line
+```ocaml
+# let rec read_dict () =
+    let i = read_int () in
+        if i = 0 then [] else
+            let name = read_line () in
+             (i, name) :: read_dict ();;
+val read_dict : unit -> (int * string) list = <fun>
+
+(*Execution *)
+# read_dict ();;
+1
+Germany
+2
+Japan
+3
+France
+4
+Uzbekistan
+0
+- : (int * string) list =
+[(1, "Germany"); (2, "Japan"); (3, "France"); (4, "Uzbekistan")]
+
+read_dict ();;
+f
+Exception: Failure "int_of_string".
+```
+
+Handling failure
+```ocaml
+# let rec read_dict () =
+  try
+    let i = read_int () in
+        if i = 0 then [] else
+            let name = read_line () in
+             (i, name) :: read_dict ()
+  with
+    Failure _ ->
+    print_string "This is not a valid integer. Please try again." ;
+    print_newline ();
+    read_dict ();;
+```
+### Using files
+__in_channel__ - places to read from
+__out_channel__ - places to write to
+
+```ocaml
+(* Function to writing a dictionary of type (int*string) *)
+let entry_to_channel ch (k, v) =
+    output_string ch (string_of_int k); (*There is no output_int function*)
+    output_char ch '\n';(*No output_newline so using line escape char*)
+    output_string ch v;
+    output_char ch '\n';;
+val entry_to_channel : out_channel -> int * string -> unit = <fun>
+
+let dictionary_to_channel ch d =
+    iter (entry_to_channel ch) d;;
+val dictionary_to_channel : out_channel -> (int * string) list -> unit = <fun>
+
+dictionary_to_file "file.txt" (read_dict ());;
+1
+hello
+2
+goodbye
+0
+- : unit = ()
+```
+
+2-stage file write. First file open with `open_out` and then file close with `close_out` after contents is written.
+
+```ocaml
+let dictionary_to_file filename dict =
+    let ch = open_out filename in
+        dictionary_to_channel ch dict;
+        close_out ch;;
+val dictionary_to_file : string -> (int * string) list -> unit = <fun>
+```
+
+__Reading Files__
+```ocaml
+let entry_of_channel ch =
+    let number = input_line ch in
+        let name = input_line ch in
+            (int_of_string number, name);;
+val entry_of_channel : in_channel -> int * string = <fun>
+
+let rec dictionary_of_channel ch =
+    try
+        let e = entry_of_channel ch in
+            e :: dictionary_of_channel ch
+    with
+        End_of_file -> [];;
+val dictionary_of_channel : in_channel -> (int * string) list = <fun>
+
+let dictionary_of_file filename =
+    let ch = open_in filename in
+        let dict = dictionary_of_channel ch in
+            close_in ch;
+            dict;;
+val dictionary_of_file : string -> (int * string) list = <fun>
+
+# dictionary_of_file "file.txt";;
+- : (int * string) list = [(1, "hello"); (2, "goodbye")]
+```
+List of all the functions used at end of file.
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
@@ -834,3 +1007,4 @@ Br ((3, "three"), Br ((1, "one"), Lf, Br ((2, "two"), Lf, Lf)),
 [7]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
 [8]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
 [9]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
+[10]:https://johnwhitington.net/ocamlfromtheverybeginning/split17.html

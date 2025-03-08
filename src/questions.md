@@ -1091,6 +1091,141 @@ val map_mtree : ('a -> 'b) -> 'a mtree -> 'b mtree = <fun>
 
 ```
 
+## In and Out
+[IO-stuff][9]
+1. Write a function to print a list of integers to the screen in the same format OCaml uses – i.e. with square brackets and semicolons.
+```ocaml
+let rec iter_print_list f l =
+    match l with
+    [] -> ()
+    | [x] -> f x; print_char ']'
+    | h::t -> f h; print_string "; "; iter_print_list f t;;
+val iter : ('a -> 'b) -> 'a list -> unit = <fun>
+
+let print_list_items l =
+    match l with 
+    [] -> ()
+    |_ -> print_char '['; iter_print_list print_int l;;
+val print_list_items : int list -> unit = <fun>
+
+print_list_items [1;2;3;4;5;6];;
+[1; 2; 3; 4; 5; 6]- : unit = ()
+```
+2. Write a function to read three integers from the user, and return them as a tuple. 
+What exceptions could be raised in the process? Handle them appropriately.
+```ocaml
+# type output_type = (int * int * int);;
+# let rec read_three_ints () =
+    print_string "Type three integers and get a tuple!";
+    print_newline ();
+    try
+        (*Brute force from the text!*)
+        let x = read_int () in
+            let y = read_int () in
+                let z = read_int () in
+                (x, y, z)
+                
+    with
+        Failure _ ->
+        print_string "This is not a valid integer. Please try again.";
+        print_newline ();
+        read_three_ints ();;
+val read_three_ints : unit -> int * int * int = <fun>
+read_three_ints ();;
+
+Type three integers and get a tuple!
+3
+45
+66
+```
+3. In our `read_dict` function, we waited for the user to type 0 to indicate no more data. This is clumsy. Implement a new read_dict function with a nicer system. Be careful to deal with possible exceptions which may be raised.
+```ocaml
+
+# let rec new_read_dict () =
+
+    try
+        let x = read_int ()
+            let name = read_line () in
+                (i, name) :: new_read_dict ()
+    
+    with 
+        Failure _ -> 
+            print_string "This is not a valid integer. Please try again.";
+            print_newline ();
+            new_read_dict ();;
+val new_read_dict : unit -> (int * string) list = <fun>
+```
+4. Write a function which, given a number `x`, prints the `x`-times table to a given file name.
+
+```ocaml
+let rec create_list i j =
+if i = j then
+    [j]
+else
+    (j :: create_list i (j+1));;
+val create_list : int -> int -> int list = <fun>
+```
+```ocaml
+let rec map f l =
+    match l with
+    [] -> []
+    (* f is a function in the initial call a parameter 
+    that is 'called' to each h recursively until list is exhausted*)
+    | h::t -> f h :: map f t;;
+```
+Solution from the site. Couldn't quite wrestle with this.
+
+Reminder: pattern matching with creating lists needs append `@` instead of cons `::`.
+
+```ocaml
+(*Create a num list*)
+
+let rec numlist n =
+
+match n with
+0 -> []
+|_ -> numlist(n-1) @ [n];;
+val numlist : int -> int list = <fun>
+let rec map f l =
+    match l with
+        [] -> []
+        |h::t -> f h :: map f t;;
+val iter : ('a -> 'b) -> 'a list -> unit = <fun>
+
+let rec iter f l =
+    match l with
+    [] -> ()
+    | h::t -> f h; iter f t;;
+val iter : ('a -> 'b) -> 'a list -> unit = <fun>
+
+(*Very important*)
+let write_table_channel ch n =
+    (*Outer iter function call*)
+    iter 
+        (*OUTER ITER- arg1*)
+        ((*arg1 - anonymous function provided as value for iter 'f'*)
+        fun x ->
+            (*arg1 - INNER ITER*)
+            iter
+                    (*arg1 - INNER ITER - arg1*)
+                    (*anon-fun output i using channel instead of console*)
+                    (fun i -> 
+                    output_string ch (string_of_int i);
+                    output_string ch "\t")
+                (*This provides the INNER iteration to 5 of columns
+                The outer reference to the anonymous function providing a fixed x for each row to pcreate muliples.*)
+                (map (( * ) x ) (numlist n));
+                output_string ch "\n")
+        (*Outer iter- arg2
+        This provides the outer iteration to 5 of rows!*)
+        (numlist n);;
+val write_table_channel : out_channel -> int -> unit = <fun>
+
+
+```
+
+
+
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
@@ -1100,3 +1235,4 @@ val map_mtree : ('a -> 'b) -> 'a mtree -> 'b mtree = <fun>
 [6]:https://johnwhitington.net/ocamlfromtheverybeginning/split14.html
 [7]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
 [8]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
+[9]:https://johnwhitington.net/ocamlfromtheverybeginning/split17.html
