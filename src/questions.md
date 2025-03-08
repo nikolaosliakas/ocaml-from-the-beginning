@@ -1220,10 +1220,33 @@ let write_table_channel ch n =
         This provides the outer iteration to 5 of rows!*)
         (numlist n);;
 val write_table_channel : out_channel -> int -> unit = <fun>
-
-
 ```
+```shell
+utop # write_table_channel stdout 5;;
+    1       2       3       4       5
+    2       4       6       8       10
+    3       6       9       12      15
+    4       8       12      16      20
+    5       10      15      20      25
+    - : unit = ()
+```
+Then we write to the 'output handler'. 
+```ocaml
+exception FileProblem
 
+let table filename n =
+    if n < 0 then
+        raise (Invalid_argument "table") 
+    else
+        (*Exceptions are thrown in the smallest point.*)
+        try
+            let ch = open_out filename in 
+            write_table_channel ch n;
+            close_out ch
+        with
+            _ -> raise FileProblem;;
+val table : string -> int -> unit = <fun>
+```
 
 
 <!-- Links --->
