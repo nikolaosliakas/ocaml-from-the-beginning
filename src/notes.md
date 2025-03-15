@@ -997,6 +997,180 @@ val dictionary_of_file : string -> (int * string) list = <fun>
 ```
 List of all the functions used at end of file.
 
+## Putting Things in Boxes
+[Boxed Types][11]
+
+"When we assigned a value to a name, that value could never change. Sometimes, it is convenient to allow the value of a name to be changed - some algorithms are more naturally expressed that way.
+OCaml provides a construct known as a _reference_ which is a box in which we can store a value.
+
+```ocaml
+(*ref - built-in function to build references*)
+ref has type  'a -> 'a ref;;
+
+(*Example reference with inital contents 0 and type int ref*)
+# let x = ref 0;;
+val x : int ref = {contents = 0}
+(*EXTRACTING the current contents of a 
+reference uses ! *)
+let p = !x;;
+val p : int = 0
+(*UPDATING the current contents of the 
+reference uses := *)
+x := 50;;
+- : unit = ()
+# x;;
+- : int ref = {contents = 50}
+```
+The `:=` oprator has type __'a ref -> 'a -> unit__.
+It takes a reference and a new value to put into it, buts the value in. It returns nothing. _Only useful for its side-effect_.
+
+```ocaml
+# p;;
+- : int = 0
+(*p is unchanged even as the value was extracted from x, and x has changed*)
+
+(*function to swap the contents of two references*)
+let swap a b =
+    (*extract the CONTENTS of a not the reference type of a*)
+    let t = !a in
+        (*t is needed as an intermediary as after this point
+        a == b, so how would b receive a's content without t storage?*)
+        a := !b; b := t;;
+val swap : 'a ref -> 'a ref -> unit = <fun>
+```
+
+### Ternary Operations
+`if x = 0 then a := 0 else ()`<br>
+can be<br>
+`if x = 0 then a := 0`
+
+if there is an `else` statement we put brackets around the `if ... then` imperative like so:
+
+```ocaml
+if x = y then
+    (a := !a + 1;
+     b := !b - 1)
+else
+    c := !c + 1;;
+```
+
+This is equivalent to:
+```ocaml
+if x = y then
+    begin
+        a := !a + 1;
+        b := !b - 1
+    end
+else
+    c := !c + 1;;
+```
+### For Loop
+
+`for ... = ... to ... do ... done;;`
+`for x = 1 to 5 do print_int x ; print_newline () done;;`
+<br>This whole expression of the for loop is __unit__ irrespective of the expression(s) within it. This is the same with while loops.
+
+### While Loop
+`while ... do ... done`
+```ocaml
+let smallest_pow2 x =
+    let t = ref 1 in
+        while !t < x do
+            t := !t * 2
+        done;
+        !t;;
+val smallest_pow2 : int -> int = <fun>
+
+# smallest_pow2 10;;
+- : int = 16
+```
+
+### Example: text file statistics
+
+Count the number of words, sentences and lines in a text file. 
+
+Opening paragraph of 'Metamorphosis'.
+
+The below is saved in `~/data/gregor.txt`.
+
+```text
+One morning, when Gregor Samsa woke from troubled dreams, he found\n himself transformed in his bed into a horrible vermin. He lay on\n his armour-like back, and if he lifted his head a little he could\n see his brown bellw, slightly domed and divided by arches into stiff\n sections. The bedding was hardly able to cover it and seemed ready\n to slide off any moment. His many legs, pitifully thin compared\n with the size of the rest of him, waved about helplessly as he \nlooked.
+```
+1. Write function that counts lines.
+
+```ocaml
+let channel_statistics in_channel = 
+    (*value of 0 to lines*)
+  let lines = ref 0 in
+    try
+      (*true as while loop will run forever. Most txt files
+      end, so the end_of_file exception will eventually be thrown.*)
+      while true do
+        (*increment by 1 each line variable is not exception End_of_file*)
+        let line = input_line in_channel in
+          lines := !lines + 1
+      done
+    with
+      End_of_file ->
+        print_string "There were ";
+        print_int !lines;
+        print_string " lines.";
+        print_newline ();;
+val channel_statistics : in_channel -> unit = <fun>
+```
+2. Write a function to read in name of channel and execute channel stat function.
+```ocaml
+let file_statistics name =
+  let channel = open_in name in
+    try
+      channel_statistics channel;
+      close_in channel
+    with
+      _ -> close_in channel
+val file_statistics : string -> unit = <fun>
+```
+3. Counting number of words, characters, and sentences. Naive approach: n of words == n of spaces, n of sentences are match char with '.' | '!' | '?'. 
+
+```ocaml
+let channel_statistics in_channel = 
+  let lines = ref 0 in
+  (*Add and initialise variables*)
+  let characters = ref 0 in
+  let words = ref 0 in
+  let sentences = ref 0 in
+
+    try
+      while true do
+        let line = input_line in_channel in
+          lines := !lines + 1;
+        (* apply String.length to line string*)
+        characters := !characters + String.length line;
+        (*Iterate over each char using String.iter
+            apply anonymous function to each c 
+            - anon_func increment sentences or words with naive definition of words/sentences*)
+        String.iter
+            (fun c ->
+              match c with
+                '.' | '?' | '!' -> sentences := !sentences + 1
+                | ' ' -> words := !words + 1
+                | _ -> ())
+            line
+      done
+    with
+      End_of_file ->
+        print_string "There were ";
+        print_int !lines;
+        print_string " lines, making up ";
+        print_int !characters;
+        print_string " characters with ";
+        print_int !words;
+        print_string " words in ";
+        print_int !sentences;
+        print_string " sentences.";
+        print_newline ();;
+val channel_statistics : in_channel -> unit = <fun>
+```
+
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
 [2]:https://johnwhitington.net/ocamlfromtheverybeginning/split09.html
@@ -1008,3 +1182,4 @@ List of all the functions used at end of file.
 [8]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
 [9]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
 [10]:https://johnwhitington.net/ocamlfromtheverybeginning/split17.html
+[11]:https://johnwhitington.net/ocamlfromtheverybeginning/split18.html
