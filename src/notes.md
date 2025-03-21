@@ -1170,6 +1170,71 @@ let channel_statistics in_channel =
         print_newline ();;
 val channel_statistics : in_channel -> unit = <fun>
 ```
+```shell
+file_statistics "data/gregor.txt";;
+There were 8 lines, making up 461 characters with 78 words in 4 sentences.
+- : unit = ()
+```
+
+### OCaml Arrays
+Array definition: place to store a fixed number of elements of like type.<br>
+Arrays are introduced with `[|` and `|]`, elements seperated by semicolons.<br>
+
+```ocaml
+let a = [|1;2;3;4;5|];;
+val a : int array = [|1; 2; 3; 4; 5|]
+```
+Accessing elements in _constant time_ can use subscript with position.
+
+```ocaml
+# a.(3);;
+- : int = 4
+```
+Updating Array:
+
+```ocaml
+# a.(3) <- 123;;
+- : unit = ()
+# a;;
+- : int array = [|1; 2; 3; 123; 5|]
+```
+Index out of bounds if access or update index not in bounds
+```ocaml
+# a.(6) <-123;;
+Exception: Invalid_argument "index out of bounds".
+```
+#### Functions of Arrays
+```ocaml
+# Array.length a;;
+- : int = 5
+```
+Making an array
+```ocaml
+(*2 args for Array.make
+    arg1 - integer array len
+    arg2 - 'a polymorphic value to copy across*)
+    - : int -> 'a -> 'a array = <fun>
+
+# Array.make 10 false;;
+- : bool array =
+[|false; false; false; false; false; false; false; false; false; false|]
+
+# Array.make 3 (Array.make 5 'F');;
+- : char array array =
+[|[|'F'; 'F'; 'F'; 'F'; 'F'|]; [|'F'; 'F'; 'F'; 'F'; 'F'|];
+  [|'F'; 'F'; 'F'; 'F'; 'F'|]|]
+```
+### Example: histogram with Arrays!
+
+Build a histogram count number of each sort of character.<br>
+ASCII code char -> int encoding
+<br> `int_of_char` or `char_of_int` to convert between.
+0 to 255
+
+<br> We will store our histogram as integer array of len 256.
+
+
+
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
