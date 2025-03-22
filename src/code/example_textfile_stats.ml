@@ -17,7 +17,7 @@ let print_histogram arr =
         print_newline ()
       end
     done
-    
+
 let channel_statistics in_channel = 
   let lines = ref 0 in
   (*Add and initialise variables*)
@@ -75,3 +75,11 @@ let file_statistics name =
       close_in channel
     with
       _ -> close_in channel
+
+let sum_array arr = 
+  let sum = ref 0 in
+    for x = 0 to Array.length arr -1 do
+      sum := !sum + arr.(x)
+    done;
+    print_int !sum
+

@@ -1248,3 +1248,4 @@ ASCII code char -> int encoding
 [9]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
 [10]:https://johnwhitington.net/ocamlfromtheverybeginning/split17.html
 [11]:https://johnwhitington.net/ocamlfromtheverybeginning/split18.html
+[12]:https://johnwhitington.net/ocamlfromtheverybeginning/split19.html

@@ -1248,6 +1248,158 @@ let table filename n =
 val table : string -> int -> unit = <fun>
 ```
 
+## Putting things in Boxes AKA References and Arrays
+[arrays][10]<br>
+1. Consider the expression
+```ocaml
+
+let x = ref 1 in
+let y = ref 2 in
+x := !x + !x;
+y := !x + !y;
+!x + !y
+
+(*
+step1 - [x=1; y=2]
+step2 - [x=2; y=2]
+step3 - [x=2; y=4]
+step4 - 6
+- : int = 6
+type () -> int if it were a function with no args.
+*)
+```
+2. What is the difference between `[ref 5; ref 5]` and `let x = ref 5 in [x;x]`?<br>
+```ocaml
+# [ref 5; ref 5];;
+- : int ref list = [{contents = 5}; {contents = 5}]
+# let x = ref 5 in [x;x];;
+- : int ref list = [{contents = 5}; {contents = 5}]
+```
+
+Both produce int ref list with two references with contents of 5. The difference is how this is expressed.
+
+3. Imagine that the `for … = … to … do … done` construct did not exist. How might we create the same behaviour?
+Recursively increment an outer function????
+
+<br> From the book.<br>
+function of type __int -> 'a__ alpha instead of unit
+Include start and end numbers
+```ocaml
+let rec forloop f n m =
+    if n <= m then
+        (*apply function to each integer*)
+        begin
+            f n;
+            (*increment n in recursive inner call*)
+            forloop f (n + 1) m
+        end
+
+```
+
+4. Whare the types of these expressions?
+```ocaml
+[|1;2;3|]
+val a : int array = [|1; 2; 3|]
+[|true; false; true|]
+- : bool array
+[|[|1|]|]
+- : int array array AKA (int array) array
+[|[1; 2; 3]; [4; 5; 6]|]
+- : int list array (*Key here: inner structure is a pair of lists rather than arrays!*)
+[|1; 2; 3|].(2)
+- : int 3
+(*Assign int 4 to position 2 index from 0
+[|1;2;4|]
+*)
+[|1; 2; 3|].(2) <- 4
+- : unit = ()
+```
+5. Write a function to compute the sum of the elements in an integer array.
+
+```ocaml
+let sum_array arr = 
+  let sum = ref 0 in
+    for x = 0 to Array.length arr - 1 do
+      sum := !sum + arr.(x)
+    done;
+    !sum
+val sum_array : int array -> int = <fun>
+```
+
+6. Write a function to reverse the elements of an array (no new array)
+
+```ocaml
+let reverse_array arr =
+(*Author included base case where array has length 1
+This is needed for out of bounds exception:
+# reverse_array [||];;
+Exception: Invalid_argument "index out of bounds".*)
+if Array.length arr > 1 then
+    let le = Array.length arr - 1 in
+        for x = 0 to (le/2) do
+            let i = arr.(x) in
+            arr.(x) <- arr.(le-x);
+            arr.(le-x) <- i;
+        done;
+    arr;;
+val reverse_array : 'a array -> 'a array = <fun>
+```
+7. Write a function table which, given an integer, builds the int array array representing the multiplication table up to that number. For example, `table 5` should yield:
+
+```ocaml
+let table n = 
+    (*two dimensional array with size n and initvalue 0*)
+    let a = Array.make n [||] in
+        for x = 0 to n - 1 do
+            a.(x) <- Array.make n 0
+        done;
+        for i = 0 to n-1 do
+            for j = 0 to n-1 do
+                a.(i).(j) <- (i+1) * (j+1);
+            done;
+        done;
+    a;;
+val table : int -> int array array = <fun>
+```
+8. The ASCII codes for the lower case letters ’a’…’z’ are 97…122, and for the upper case letters ’A’…’Z’ they are 65…90. Use the built-in functions int_of_char and char_of_int to write functions to uppercase and lowercase a character. Non-alphabetic characters should remain unaltered.
+
+```ocaml
+let switch_case c =
+
+    let i = ref (int_of_char c) in
+        if !i > 96 && !i < 123 then
+            i := !i - 32
+        else if !i > 64  && !i < 91 then
+            i := !i + 32
+    ; char_of_int !i;;
+```
+From the author - no need to use references!
+```ocaml
+let uppercase x =
+    if int_of_char x >= 97 && int_of_char x <=122
+        then char_of_int(int_of_char x - 32)
+    else x
+let lowercase x =
+    if int_of_char x >= 65 && int_of_char x <=90
+        then char_of_int(int_of_char x + 32)
+    else x
+```
+How I would write it after seeing author:
+```ocaml
+let switch_case c =
+    let i = int_of_char c in
+        if i >= 97 && i <=122 
+            then char_of_int(i - 32)
+        else if i >= 65 && i <=90 
+            then char_of_int(i + 32)
+        else c
+val switch_case : char -> char = <fun>
+```
+9. Commentary from author on text example use for string parsing!
+Periods, exclamation marks and question marks may appear in multiples, leading to a wrong answer. The number of characters does not include newlines. It is not clear how quotations would be handled. Counting the words by counting spaces is inaccurate – a line with ten words will count only nine.
+
+
+
 
 <!-- Links --->
 [1]:https://johnwhitington.net/ocamlfromtheverybeginning/split07.html
@@ -1259,3 +1411,4 @@ val table : string -> int -> unit = <fun>
 [7]:https://johnwhitington.net/ocamlfromtheverybeginning/split15.html
 [8]:https://johnwhitington.net/ocamlfromtheverybeginning/split16.html
 [9]:https://johnwhitington.net/ocamlfromtheverybeginning/split17.html
+[10]:https://johnwhitington.net/ocamlfromtheverybeginning/split18.html
