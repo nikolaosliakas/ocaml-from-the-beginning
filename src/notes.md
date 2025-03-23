@@ -1234,6 +1234,84 @@ ASCII code char -> int encoding
 <br> We will store our histogram as integer array of len 256.
 
 
+## The Other Numbers
+[Non-Integer Numbers][12]
+
+```ocaml
+# 1.5;;
+- : float = 1.5
+# 6.;;
+- : float = 6.
+# -.2.3452;;
+- : float = -2.3452
+# -2.34;;
+- : float = -2.34
+# 1.0 +. 2.5 *. 3.0;;
+- : float = 8.5
+# 1.0 + 2.5 *. 3.0;;
+(*Error: This expression has type float but an expression was expected of type
+         intd*)
+# 1.0 /. 1000.0;;
+- : float = 0.001
+# 1. /. 100000.;;
+- : float = 1e-05
+# 3000. ** 10.;;
+- : float = 5.9049e+34
+# 3.123 -. 3.;;
+- : float = 0.12300000000000022
+# max_float;;
+- : float = 1.79769313486231571e+308
+# min_float;;
+- : float = 2.22507385850720138e-308
+```
+
+### standard funcs for floats
+
+|Function|Type|Description|
+|---------|-----|-----------|
+|`sqrt` | __float -> float__| Square root.|
+|`log` | __float -> float__| Natural log.|
+|`log10` | __float -> float__| log based ten.|
+|`sin` | __float -> float__| sin of an angle given in radians.|
+|`cos` | __float -> float__| cos of an angle given in radians.|
+|`tan` | __float -> float__| tan of an angle given in radians.|
+|`atan` | __float -> float__| arctangent of an angle given in radians.|
+|`ceil` | __float -> float__| calc nearest whole number at least as big as a floating-point number.|
+|`floor` | __float -> float__| calc nearest whole number at least as small as a floating-point number.|
+|`float_of_int` | __int -> float__| convert integer to float.|
+|`int_of_float` | __float -> int__| convert float to integer.|
+|`print_float` | __float -> unit__| print.|
+
+<br>
+
+### Functions with floating points
+Operations on vectors in two dimensions.
+<br> Each point as a pair of floating-point numbers of type __float x float__ such as `(2.0, 3.0)`. Vectors will be represented as points as well.
+
+1. Func to build vector from one point to another
+```ocaml
+let make_vector (x0, y0) (x1, y1) =
+    (x1 -. x0, y1 - y0)
+```
+2. Func to find the length of a vector
+```ocaml
+let vector_length (x,y) =
+    sqrt (x *. x +. y *. y)
+```
+3. Func to offset a point by a vector
+```ocaml
+let offset_point (x, y) (px, py)=
+    (px +. x, py +. y)
+```
+4. Func to scale a vector a vector to a given length
+```ocaml
+let scale_to_length l (a, b)=
+    let currentlength = vector_length (a, b) in
+        if currentlength = 0 then (a, b) else
+            let factor = l /. currentlength in
+                (a *. factor, b *. factor)
+```
+
 
 
 <!-- Links --->
