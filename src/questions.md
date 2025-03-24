@@ -1395,10 +1395,110 @@ let switch_case c =
         else c
 val switch_case : char -> char = <fun>
 ```
-9. Commentary from author on text example use for string parsing!
+9. Commentary from author on text example use for string parsing!<br>
 Periods, exclamation marks and question marks may appear in multiples, leading to a wrong answer. The number of characters does not include newlines. It is not clear how quotations would be handled. Counting the words by counting spaces is inaccurate – a line with ten words will count only nine.
 
+## The Other Numbers AKA Floats
 
+1. Give a function which rounds a positive floating-point number to the nearest whole number, returning another floating-point number.
+
+```ocaml
+let round_float n = 
+
+    let c = ceil n in
+      let f = floor n in
+        if c -. n <= n -. f then f else c;;
+val round_float : float -> float = <fun>
+```
+2. Write a function to find the point equidistant from two given points in two dimensions.
+```ocaml
+let find_midpoint (x0, y0) (x1, y1) =
+
+    ((x0 +. x1) /. 2. , (y0 +. y1) /. 2.)
+
+val find_midpoint : float * float -> float * float -> float * float = <fun>
+```
+3. Write a function to separate a floating-point number into its whole and fractional parts. Return them as a tuple of type __float × float__.
+```ocaml
+let separate_whole_fract x =
+    (floor x, x -. floor x)
+val seperate_whole_fract : float -> float * float = <fun>
+```
+4. Write a function `star` of type __float → unit__ which, given a floating-point number between zero and one, draws an asterisk to indicate the position. An argument of zero will result in an asterisk in column one, and an argument of one an asterisk in column fifty.
+```ocaml
+let array_string_concat a =
+    let b = Buffer.create(Array.length a) in
+        Array.iter (Buffer.add_string b) a; print_string (Buffer.contents b)
+val array_string_concat : string array -> unit = <fun>
+let star x =
+    let a = Array.make 50 " " in
+        if x > 1. || x < 0. then
+            print_string "Arg not between 0 and 1!" 
+        else
+            (let position = int_of_float (floor (x /. 2. *. 100.)) in
+            a.(position) <- "*");
+    let str_output = array_string_concat a;
+    print_string str_output;
+    print_newline ();;
+val star : float -> unit = <fun>
+```
+5. Now write a function plot which, given a function of type float → float, a range, and a step size, uses `star` to draw a graph. 
+```ocaml
+(*atan - arctangent of an angle given in radians.*)
+let pi = 4.0 *. atan 1.0;;
+val pi : float = 3.14159265358979312
+
+let plot f r_start r_end step =
+
+    let total_steps = int_of_float ((r_end -. r_start) /. step) in
+    print_int total_steps ;
+        for i=0 to total_steps-1 do
+            star (
+                f (
+                    (float_of_int i *. step) +. r_start
+                    )
+                )
+        done
+```
+From the author:
+```ocaml
+let star x =
+    let i = int_of_float (floor (x *. 50.)) in
+        let i' = if i = 50 then 49 else i in
+            for x = 1 to i' -1 do print_char ' ' done;
+            print_char '*';
+            print_newline ()
+
+let plot f a b dy =
+    let pos = ref a in
+        while !pos <= b do
+            star (f !pos);
+            pos := !pos +. dy
+        done
+# plot sin 0. pi (pi /. 20.);;
+*
+      *
+              *
+                     *
+                            *
+                                  *
+                                       *
+                                           *
+                                              *
+                                                *
+                                                *
+                                                *
+                                              *
+                                           *
+                                       *
+                                  *
+                            *
+                     *
+              *
+      *
+*
+- : unit = ()
+```
 
 
 <!-- Links --->

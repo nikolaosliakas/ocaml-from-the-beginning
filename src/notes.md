@@ -289,7 +289,7 @@ val evens : int list -> bool list = <fun>
 ```
 syntax of anonymous function
 ```ocaml
-fun <named arg> -> <function definition>)
+fun <named arg> -> <function definition>
 
 map (fun x -> x /2) [10;20;30];;
 - : int list = [5; 10; 15]
